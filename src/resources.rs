@@ -26,6 +26,6 @@ enum GameMode {
 
 //Will be read through the map format using #v tag
 #[derive(Resource)]
-struct MapVersion { 
+struct MapVersion {
     file_version: i8,
 }
