@@ -10,7 +10,7 @@ use emitter::Emitter;
 pub struct RayMapData {
     file_version: i8,
     entities: Vec<(i8, Vec3)>, // Vector of tuples containing entity type and positions
-    map_data: Vec<(i8, Vec3)>, // Vector of tuples containing object type and position
+    map_data: Vec<(i8, Vec3)>, // Vector of tuples containing object type and position TODO rename
 }
 
 impl Default for RayMapData {
@@ -138,27 +138,62 @@ impl<'a> MapBuilder<'a> {
         Self { map_data }
     }
 
-    fn build_entities(&self, commands: &mut Commands, meshes: &mut ResMut<Assets<Mesh>>, materials: &mut ResMut<Assets<StandardMaterial>>) {
+    fn build_entities(
+        &self,
+        commands: &mut Commands,
+        meshes: &mut ResMut<Assets<Mesh>>,
+        materials: &mut ResMut<Assets<StandardMaterial>>,
+    ) {
         let mesh = Cuboid::new(1.0, 1.0, 1.0);
         let material = Color::SEA_GREEN;
 
-        for &(_, position) in self.map_data.entities.iter() {
+        for &(ent_type, position) in self.map_data.entities.iter() {
+            if ent_type == 1 {
+                commands.spawn((
+                    PbrBundle {
+                        mesh: meshes.add(mesh),
+                        material: materials.add(material),
+                        transform: Transform::from_translation(position),
+                        ..Default::default()
+                    },
+                    Emitter {
+                        angle: 0.,
+                        position: Transform::from_translation(position),
+                        mesh: mesh.mesh(),
+                        material: material,
+                    },
+                ));
+            }
+        }
+    }
 
-            
-            commands.spawn((
-                PbrBundle {
+    fn build_map_objects(
+        &self,
+        commands: &mut Commands,
+        meshes: &mut ResMut<Assets<Mesh>>,
+        materials: &mut ResMut<Assets<StandardMaterial>>,
+    ) {
+        let mesh = Cuboid::new(1.0, 1.0, 1.0);
+        let material = Color::RED;
+        for &(obj_type, position) in self.map_data.map_data.iter() {
+            if obj_type == 1 {
+                commands.spawn((PbrBundle {
                     mesh: meshes.add(mesh),
                     material: materials.add(material),
                     transform: Transform::from_translation(position),
                     ..Default::default()
-                },
-                Emitter {angle: 0., position:  Transform::from_translation(position), mesh: mesh.mesh(), material: material},
-        ));
+                },));
+            }
         }
     }
 
-    pub fn build(&self, commands: &mut Commands, meshes: &mut ResMut<Assets<Mesh>>, materials: &mut ResMut<Assets<StandardMaterial>>) {
+    pub fn build(
+        &self,
+        commands: &mut Commands,
+        meshes: &mut ResMut<Assets<Mesh>>,
+        materials: &mut ResMut<Assets<StandardMaterial>>,
+    ) {
         self.build_entities(commands, meshes, materials);
-        //self.build_map_objects(commands, meshes);
+        self.build_map_objects(commands, meshes, materials);
     }
 }
